@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Water Tab Client</string>
+    <string name="water_tap">Water Tap</string>
+    <string name="fill_info">Fill The Below information to Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="forget_password">Forget your password?</string>
+    <string name="login">Login</string>
+    <string name="logo">logo</string>
+    <string name="do_not_have_account">Don\'t have an account?</string>
+    <string name="register">Register</string>
+    <string name="fill_info_register">Fill The Below information to Register</string>
+    <string name="username">Username</string>
+    <string name="have_account">Have an account?</string>
+    <string name="back">back</string>
 </resources>
