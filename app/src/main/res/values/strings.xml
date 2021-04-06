@@ -13,4 +13,26 @@
     <string name="username">Username</string>
     <string name="have_account">Have an account?</string>
     <string name="back">back</string>
+    <string name="password_empty">Password must be entered!</string>
+    <string name="email_empty">Email must be entered!</string>
+    <string name="phone">Phone</string>
+    <string name="username_empty">Username must be entered</string>
+    <string name="phone_empty">Phone must be entered</string>
+    <string name="email_is_used">This email already used!</string>
+    <string name="homepage">Homepage</string>
+    <string name="settings">Settings</string>
+    <string name="drawerOpen">drawer open</string>
+    <string name="drawerClose">drawer close</string>
+    <string name="enter_subject">Enter The Subject</string>
+    <string name="enter_content">Enter The Content</string>
+    <string name="send_email">Send Email</string>
+    <string name="content_error">Content must entered!</string>
+    <string name="subject_error">Subject must entered!</string>
+    <string name="map">Map</string>
+    <string name="notification">Notifications</string>
+    <string name="about_us">About us</string>
+    <string name="concat_us">Concat us</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="order_truck">order truck</string>
 </resources>

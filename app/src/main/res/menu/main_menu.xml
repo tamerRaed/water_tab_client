@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group
+        android:id="@+id/group1"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/homepage"
+            android:icon="@drawable/ic_home"
+            android:title="@string/homepage" />
+
+        <item
+            android:id="@+id/ride"
+            android:icon="@drawable/ic_compass"
+            android:title="@string/map" />
+
+        <item
+            android:id="@+id/notification"
+            android:icon="@drawable/ic_notifications"
+            android:title="@string/notification" />
+    </group>
+
+    <group
+        android:id="@+id/group2"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/settings"
+            android:icon="@drawable/ic_settings"
+            android:title="@string/settings" />
+
+        <item
+            android:id="@+id/about_us"
+            android:icon="@drawable/ic_information"
+            android:title="@string/about_us" />
+
+        <item
+            android:id="@+id/concat_us"
+            android:icon="@drawable/ic_letter"
+            android:title="@string/concat_us" />
+    </group>
+
+</menu>
