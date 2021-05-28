@@ -18,6 +18,7 @@ import com.tamer.alna99.watertabclient.fragments.AboutUsFragment;
 import com.tamer.alna99.watertabclient.fragments.ConcatUsFragment;
 import com.tamer.alna99.watertabclient.fragments.HomepageFragment;
 import com.tamer.alna99.watertabclient.fragments.NotificationFragment;
+import com.tamer.alna99.watertabclient.fragments.OldOrdersFragment;
 
 import java.util.Objects;
 
@@ -70,6 +71,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 toolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 drawerLayout.closeDrawers();
                 break;
+
+            case R.id.old_orders:
+                OldOrdersFragment oldOrdersFragment = new OldOrdersFragment();
+                moveFragment(oldOrdersFragment);
+                toolbar.setTitle(getString(R.string.old_orders));
+                toolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                drawerLayout.closeDrawers();
+                break;
+
+            case R.id.notification:
+                NotificationFragment notificationFragment = new NotificationFragment();
+                moveFragment(notificationFragment);
+                toolbar.setTitle(getString(R.string.notification));
+                toolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                drawerLayout.closeDrawers();
+                break;
+
             case R.id.settings:
                 // TODO: Settings activity
                 break;
@@ -87,12 +105,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 toolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 drawerLayout.closeDrawers();
                 break;
-            case R.id.notification:
-                NotificationFragment notificationFragment = new NotificationFragment();
-                moveFragment(notificationFragment);
-                toolbar.setTitle(getString(R.string.notification));
-                toolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                drawerLayout.closeDrawers();
+
+            case R.id.logout:
+                onBackPressed();
                 break;
         }
         return false;

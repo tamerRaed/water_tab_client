@@ -3,6 +3,7 @@ package com.tamer.alna99.watertabclient;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NetworkUtils {
 
@@ -16,6 +17,7 @@ public class NetworkUtils {
         OkHttpClient okHttpClient = new OkHttpClient.Builder().addInterceptor(httpLoggingInterceptor).build();
         Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL)
                 .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create())
                 .build();
         apiInterface = retrofit.create(ApiInterface.class);
     }
