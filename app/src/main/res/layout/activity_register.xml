@@ -16,7 +16,7 @@
         android:onClick="back"
         android:padding="@dimen/_8sdp"
         android:src="@drawable/ic_back"
-        android:tint="@color/gray"
+        android:tint="@color/dark_gray"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

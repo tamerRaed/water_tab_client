@@ -97,4 +97,5 @@ public class LoginActivity extends AppCompatActivity {
                 .setBackgroundColorRes(R.color.teal_200)
                 .show();
     }
+
 }

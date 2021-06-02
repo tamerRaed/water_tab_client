@@ -38,4 +38,8 @@
     <string name="old_orders">Old Orders</string>
     <string name="logout">Logout</string>
     <string name="find_driver">Find Driver</string>
+    <string name="driver_info">Driver Information</string>
+    <string name="search_driver">Searching a driver..</string>
+    <string name="order_driver">Order Driver</string>
+    <string name="cancel">Cancel</string>
 </resources>

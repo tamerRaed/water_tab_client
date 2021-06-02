@@ -3,31 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/driver_info_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?actionBarSize"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_scrollFlags="scroll|enterAlways"
-        app:navigationIcon="@drawable/ic_back"
-        app:navigationIconTint="@color/dark_gray"
-        app:title="@string/driver_info" />
+    android:layout_height="wrap_content"
+    android:padding="@dimen/_12sdp">
 
     <TextView
         android:id="@+id/tv_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_16sdp"
         android:textColor="@color/black"
         android:textSize="@dimen/_16sdp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/driver_info_toolbar"
+        app:layout_constraintTop_toTopOf="parent"
         tools:text="Tamer Alnuaizi" />
 
     <TextView
@@ -54,12 +42,13 @@
         android:textColor="@color/dark_gray"
         app:drawableStartCompat="@drawable/ic_letter"
         app:drawableTint="@color/dark_gray"
-        app:layout_constraintStart_toStartOf="@+id/guideline5"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_rate"
         tools:text="tameralna99@gmail.com" />
 
 
     <TextView
+        android:id="@+id/tv_phone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_8sdp"
@@ -68,14 +57,18 @@
         android:textColor="@color/dark_gray"
         app:drawableStartCompat="@drawable/ic_phone"
         app:drawableTint="@color/dark_gray"
-        app:layout_constraintStart_toStartOf="@+id/guideline5"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_email"
         tools:text="0592899024" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.05" />
+    <Button
+        android:id="@+id/btn_order"
+        android:layout_width="0dp"
+        android:layout_height="?actionBarSize"
+        android:layout_marginTop="@dimen/_12sdp"
+        android:text="@string/order_driver"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_phone" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

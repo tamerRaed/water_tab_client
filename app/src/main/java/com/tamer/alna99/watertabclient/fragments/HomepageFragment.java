@@ -2,6 +2,7 @@ package com.tamer.alna99.watertabclient.fragments;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -29,8 +30,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.maps.CameraUpdateFactory;
 import com.google.android.libraries.maps.GoogleMap;
@@ -39,14 +38,12 @@ import com.google.android.libraries.maps.SupportMapFragment;
 import com.google.android.libraries.maps.model.CameraPosition;
 import com.google.android.libraries.maps.model.LatLng;
 import com.google.android.libraries.maps.model.MarkerOptions;
-import com.tamer.alna99.watertabclient.DriverInfoActivity;
 import com.tamer.alna99.watertabclient.NetworkUtils;
 import com.tamer.alna99.watertabclient.R;
+import com.tamer.alna99.watertabclient.model.findDriver.Driver;
 import com.tamer.alna99.watertabclient.model.findDriver.FindDriverResponse;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -56,79 +53,67 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
     private final int REQUEST_LOCATION_PERMISSION = 100;
     private final int REQUEST_LOCATION_SETTINGS = 10;
     private NetworkUtils networkUtils;
-    private Button findDriver;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private Location location;
-    private GoogleMap googleMap;
+    private SupportMapFragment supportMapFragment;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d("dddd", "onCreateView");
         networkUtils = NetworkUtils.getInstance();
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getContext());
+
         checkSettingsAndRequestLocationUpdates();
         createLocationRequest();
         createLocationCallback();
+
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_homepage, container, false);
-        findDriver = view.findViewById(R.id.findDriverBtn);
-        findDriver.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d("ddd", "onClick");
-                Call<FindDriverResponse> responseBodyCall = networkUtils.getApiInterface().findDriver("-112.4724356", "37.7672544");
-                responseBodyCall.enqueue(new Callback<FindDriverResponse>() {
-                    @Override
-                    public void onResponse(@NotNull Call<FindDriverResponse> call, @NotNull Response<FindDriverResponse> response) {
-                        Log.d("ddd", "onResponse");
+        Button findDriver = view.findViewById(R.id.findDriverBtn);
+        findDriver.setOnClickListener(view1 -> {
+            ProgressDialog dialog = ProgressDialog.show(getContext(), "",
+                    getString(R.string.search_driver), true);
+            Call<FindDriverResponse> responseBodyCall = networkUtils.getApiInterface().findDriver("-112.4724356", "37.7672544");
 
-                        try {
-                            if (response.body() != null) {
-                                FindDriverResponse driver = response.body();
-                                Intent intent = new Intent(getContext(), DriverInfoActivity.class);
-                                intent.putExtra("driver", driver);
-                                Log.d("ddd", driver.getDriver().getName());
-                                startActivity(intent);
-//                                Log.d("ddd", "true");
-//                                JsonObject root = new JsonParser().parse(response.body().string()).getAsJsonObject();
-//                                if (root != null){
-//                                    Log.d("dddd", root.toString());
-//                                }
-////                                String name = root.get("name").getAsString();
-//                                Log.d("dddd", response.body().string()+"ll");
-//                                Log.d("dddd", "done");
-                            } else {
-                                Log.d("dddd", "null    " + response.errorBody().string());
+            responseBodyCall.enqueue(new Callback<FindDriverResponse>() {
+                @Override
+                public void onResponse(@NotNull Call<FindDriverResponse> call, @NotNull Response<FindDriverResponse> response) {
+                    dialog.dismiss();
 
-                            }
-
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    if (response.body() != null) {
+                        FindDriverResponse driver = response.body();
+                        BottomSheetFragment sheetFragment = new BottomSheetFragment(new Driver("Tamer", "Tamer@gmail.com"));
+                        if (getFragmentManager() != null) {
+                            sheetFragment.show(getFragmentManager(), "Tag");
                         }
                     }
+                }
 
-                    @Override
-                    public void onFailure(@NotNull Call<FindDriverResponse> call, @NotNull Throwable t) {
-
-                    }
-                });
-            }
+                @Override
+                public void onFailure(@NotNull Call<FindDriverResponse> call, @NotNull Throwable t) {
+                    Log.d("dddd", t.getMessage() + "-----" + t.getLocalizedMessage());
+                    dialog.dismiss();
+                }
+            });
         });
-        SupportMapFragment supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        assert supportMapFragment != null;
-        supportMapFragment.getMapAsync(this);
+        supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         return view;
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        this.googleMap = googleMap;
-
-        Log.d("dddd", "onMapReady");
-
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(latLng);
+        googleMap.addMarker(markerOptions);
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .zoom(18)
+                .bearing(30)
+                .target(latLng)
+                .build();
+        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
     }
 
@@ -147,8 +132,11 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("dddd", "PERMISSION_GRANTED");
                 // Get Location
                 checkSettingsAndRequestLocationUpdates();
+                createLocationRequest();
+                createLocationCallback();
             } else {
                 Toast.makeText(getContext(), "location permission is required", Toast.LENGTH_SHORT).show();
             }
@@ -167,32 +155,26 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
             Task<LocationSettingsResponse> task = settingsClient.checkLocationSettings(locationSettingsRequest);
 
             // Success
-            task.addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
-                @Override
-                public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                    // request location updates
-                    requestLocationUpdates();
-                }
+            task.addOnSuccessListener(locationSettingsResponse -> {
+                // request location updates
+                requestLocationUpdates();
             });
 
             // Failure
-            task.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    if (e instanceof ResolvableApiException) {
-                        // if resolvable, ask the user  to enable location settings
-                        ResolvableApiException resolvableApiException = (ResolvableApiException) e;
-                        try {
-                            resolvableApiException.startResolutionForResult(getActivity(), REQUEST_LOCATION_SETTINGS);
-                        } catch (IntentSender.SendIntentException sendIntentException) {
-                            sendIntentException.printStackTrace();
-                            // Location is not available in this device
-                            Toast.makeText(getContext(), "Location Service unavailable", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
+            task.addOnFailureListener(e -> {
+                if (e instanceof ResolvableApiException) {
+                    // if resolvable, ask the user  to enable location settings
+                    ResolvableApiException resolvableApiException = (ResolvableApiException) e;
+                    try {
+                        resolvableApiException.startResolutionForResult(getActivity(), REQUEST_LOCATION_SETTINGS);
+                    } catch (IntentSender.SendIntentException sendIntentException) {
+                        sendIntentException.printStackTrace();
                         // Location is not available in this device
                         Toast.makeText(getContext(), "Location Service unavailable", Toast.LENGTH_SHORT).show();
                     }
+                } else {
+                    // Location is not available in this device
+                    Toast.makeText(getContext(), "Location Service unavailable", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -221,22 +203,8 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 location = locationResult.getLastLocation();
-                if (location != null) {
-                    Log.d("dddd", location.getLongitude() + " Longitude " + location.getAltitude() + " Altitude");
-                    if (location != null) {
-                        LatLng latLng = new LatLng(location.getAltitude(), location.getLongitude());
-                        MarkerOptions markerOptions = new MarkerOptions()
-                                .position(latLng);
-                        googleMap.addMarker(markerOptions);
-                        CameraPosition cameraPosition = new CameraPosition.Builder()
-                                .zoom(18)
-                                .bearing(30)
-                                .target(latLng)
-                                .build();
-                        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                        removeLocationUpdates();
-                    }
-                }
+                removeLocationUpdates();
+                supportMapFragment.getMapAsync(HomepageFragment.this);
 
             }
         };

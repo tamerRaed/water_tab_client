@@ -28,6 +28,13 @@ public class Driver implements Parcelable {
     private String password;
     private Integer v;
 
+    public Driver(String name, String email) {
+
+        this.name = name;
+        this.email = email;
+
+    }
+
     protected Driver(Parcel in) {
         id = in.readString();
         name = in.readString();
