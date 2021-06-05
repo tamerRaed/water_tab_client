@@ -1,7 +1,5 @@
 package com.tamer.alna99.watertabclient;
 
-import com.tamer.alna99.watertabclient.model.findDriver.FindDriverResponse;
-
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Field;
@@ -16,6 +14,7 @@ public interface ApiInterface {
     String PARAM_EMAIL = "email";
     String PARAM_PASSWORD = "password";
     String PARAM_NAME = "name";
+    String PARAM_PHONE = "phone";
     String PARAM_LAT = "lat";
     String PARAM_LONG = "long";
 
@@ -25,10 +24,13 @@ public interface ApiInterface {
 
     @FormUrlEncoded
     @POST(REGISTER_PATH)
-    Call<ResponseBody> register(@Field(PARAM_NAME) String name, @Field(PARAM_EMAIL) String email, @Field(PARAM_PASSWORD) String password);
+    Call<ResponseBody> register(@Field(PARAM_NAME) String name,
+                                @Field(PARAM_EMAIL) String email,
+                                @Field(PARAM_PASSWORD) String password,
+                                @Field(PARAM_PHONE) String phone);
 
     @FormUrlEncoded
     @POST(FIND_DRIVER_PATH)
-    Call<FindDriverResponse> findDriver(@Field(PARAM_LONG) String lon, @Field(PARAM_LAT) String lat);
+    Call<ResponseBody> findDriver(@Field(PARAM_LONG) String lon, @Field(PARAM_LAT) String lat);
 
 }

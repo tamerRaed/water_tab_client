@@ -71,7 +71,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     public void register(View view) {
         if (checkFields()) {
-            Call<ResponseBody> responseBodyCall = networkUtils.getApiInterface().register(username, email, password);
+            Call<ResponseBody> responseBodyCall = networkUtils.getApiInterface().register(username, email, password, phone);
             responseBodyCall.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {

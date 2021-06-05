@@ -41,10 +41,14 @@ import com.google.android.libraries.maps.model.MarkerOptions;
 import com.tamer.alna99.watertabclient.NetworkUtils;
 import com.tamer.alna99.watertabclient.R;
 import com.tamer.alna99.watertabclient.model.findDriver.Driver;
-import com.tamer.alna99.watertabclient.model.findDriver.FindDriverResponse;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.IOException;
+
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -75,15 +79,23 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
         findDriver.setOnClickListener(view1 -> {
             ProgressDialog dialog = ProgressDialog.show(getContext(), "",
                     getString(R.string.search_driver), true);
-            Call<FindDriverResponse> responseBodyCall = networkUtils.getApiInterface().findDriver("-112.4724356", "37.7672544");
 
-            responseBodyCall.enqueue(new Callback<FindDriverResponse>() {
+            Call<ResponseBody> responseBodyCall = networkUtils.getApiInterface().findDriver("-112.4724356", "37.7672544");
+
+            responseBodyCall.enqueue(new Callback<ResponseBody>() {
                 @Override
-                public void onResponse(@NotNull Call<FindDriverResponse> call, @NotNull Response<FindDriverResponse> response) {
+                public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
                     dialog.dismiss();
-
                     if (response.body() != null) {
-                        FindDriverResponse driver = response.body();
+                        try {
+                            String result = response.body().string();
+                            JSONObject jsonObject = new JSONObject(result);
+                            boolean success = jsonObject.getBoolean("success");
+                            JSONObject jsonObject1 = jsonObject.getJSONObject("driver");
+                            Log.d("ddddd", jsonObject1.toString());
+                        } catch (JSONException | IOException e) {
+                            e.printStackTrace();
+                        }
                         BottomSheetFragment sheetFragment = new BottomSheetFragment(new Driver("Tamer", "Tamer@gmail.com"));
                         if (getFragmentManager() != null) {
                             sheetFragment.show(getFragmentManager(), "Tag");
@@ -92,7 +104,7 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                 }
 
                 @Override
-                public void onFailure(@NotNull Call<FindDriverResponse> call, @NotNull Throwable t) {
+                public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
                     Log.d("dddd", t.getMessage() + "-----" + t.getLocalizedMessage());
                     dialog.dismiss();
                 }
