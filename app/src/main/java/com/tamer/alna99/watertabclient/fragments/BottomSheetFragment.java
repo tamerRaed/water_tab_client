@@ -12,14 +12,26 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.tamer.alna99.watertabclient.NetworkUtils;
 import com.tamer.alna99.watertabclient.R;
-import com.tamer.alna99.watertabclient.model.findDriver.Driver;
+
+import java.io.IOException;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class BottomSheetFragment extends BottomSheetDialogFragment {
-    private final Driver driver;
+    private final String driverID;
+    private final String lat;
+    private final String lon;
+    private NetworkUtils networkUtils;
 
-    public BottomSheetFragment(Driver driver) {
-        this.driver = driver;
+    public BottomSheetFragment(String driverID, String lat, String lon) {
+        this.driverID = driverID;
+        this.lat = lat;
+        this.lon = lon;
     }
 
     @Nullable
@@ -32,17 +44,35 @@ public class BottomSheetFragment extends BottomSheetDialogFragment {
         TextView tv_phone = view.findViewById(R.id.tv_phone);
         Button btn_order = view.findViewById(R.id.btn_order);
 
-
-        tv_name.setText(driver.getName());
-        tv_rate.setText("4.5");
-        tv_email.setText(driver.getEmail());
-        tv_phone.setText("121212");
+        networkUtils = NetworkUtils.getInstance();
+//        tv_name.setText(driver.getName());
+//        tv_rate.setText("4.5");
+//        tv_email.setText(driver.getEmail());
+//        tv_phone.setText("121212");
 
         btn_order.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: Order driver
-                Log.d("dddd", "Order");
+                Call<ResponseBody> orderDriverResponse = networkUtils.getApiInterface().orderDriver(
+                        "60bb2b4807608000040541c5",
+                        driverID,
+                        lat,
+                        lon);
+                orderDriverResponse.enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        try {
+                            Log.d("dddd", response.body().string());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+                    }
+                });
             }
         });
 

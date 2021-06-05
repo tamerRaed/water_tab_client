@@ -11,12 +11,15 @@ public interface ApiInterface {
     String LOGIN_PATH = "api/users/logInUser";
     String REGISTER_PATH = "api/users/registerUser";
     String FIND_DRIVER_PATH = "api/users/findNearByDriver";
+    String ORDER_DRIVER_PATH = "/api/users/orderDriver";
     String PARAM_EMAIL = "email";
     String PARAM_PASSWORD = "password";
     String PARAM_NAME = "name";
     String PARAM_PHONE = "phone";
     String PARAM_LAT = "lat";
     String PARAM_LONG = "long";
+    String PARAM_CLINT_ID = "clintID";
+    String PARAM_DRIVER_ID = "driverID";
 
     @FormUrlEncoded
     @POST(LOGIN_PATH)
@@ -32,5 +35,13 @@ public interface ApiInterface {
     @FormUrlEncoded
     @POST(FIND_DRIVER_PATH)
     Call<ResponseBody> findDriver(@Field(PARAM_LONG) String lon, @Field(PARAM_LAT) String lat);
+
+
+    @FormUrlEncoded
+    @POST(ORDER_DRIVER_PATH)
+    Call<ResponseBody> orderDriver(@Field(PARAM_CLINT_ID) String clintID,
+                                   @Field(PARAM_DRIVER_ID) String driverID,
+                                   @Field(PARAM_LAT) String lat,
+                                   @Field(PARAM_LONG) String lon);
 
 }

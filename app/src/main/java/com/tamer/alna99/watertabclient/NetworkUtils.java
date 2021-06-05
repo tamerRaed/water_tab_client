@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class NetworkUtils {
 
     private static NetworkUtils instance;
-    private final String BASE_URL = "https://miahy.herokuapp.com/";
+    public final static String BASE_URL = "https://miahy.herokuapp.com/";
     private final ApiInterface apiInterface;
 
     private NetworkUtils() {

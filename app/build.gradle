@@ -46,4 +46,7 @@ dependencies {
     //implementation 'com.google.android.gms:play-services-maps:18.0.0'
     implementation 'com.google.android.libraries.maps:maps:3.1.0-beta'
     implementation 'com.github.jd-alexander:library:1.1.0'
+    implementation ('io.socket:socket.io-client:2.0.0') {
+        exclude group: 'org.json', module: 'json'
+    }
 }

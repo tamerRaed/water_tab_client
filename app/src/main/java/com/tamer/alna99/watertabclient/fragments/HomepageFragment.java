@@ -40,14 +40,17 @@ import com.google.android.libraries.maps.model.LatLng;
 import com.google.android.libraries.maps.model.MarkerOptions;
 import com.tamer.alna99.watertabclient.NetworkUtils;
 import com.tamer.alna99.watertabclient.R;
-import com.tamer.alna99.watertabclient.model.findDriver.Driver;
+import com.tamer.alna99.watertabclient.model.findDriver.MySocket;
+import com.tamer.alna99.watertabclient.model.findDriver.SharedPrefs;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 
+import io.socket.client.Socket;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -62,16 +65,21 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
     private LocationCallback locationCallback;
     private Location location;
     private SupportMapFragment supportMapFragment;
+    String id;
+    private Socket socket;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         networkUtils = NetworkUtils.getInstance();
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getContext());
+        id = SharedPrefs.getUserInfo(getContext());
 
         checkSettingsAndRequestLocationUpdates();
         createLocationRequest();
         createLocationCallback();
+
+        socket = MySocket.getInstance();
 
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_homepage, container, false);
@@ -86,20 +94,43 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                 @Override
                 public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
                     dialog.dismiss();
+                    Log.d("ddd", "onResponse");
                     if (response.body() != null) {
                         try {
                             String result = response.body().string();
+                            Log.d("ddd", result);
                             JSONObject jsonObject = new JSONObject(result);
                             boolean success = jsonObject.getBoolean("success");
-                            JSONObject jsonObject1 = jsonObject.getJSONObject("driver");
-                            Log.d("ddddd", jsonObject1.toString());
+                            JSONArray array = jsonObject.getJSONArray("driver");
+                            Log.d("dddd", array.toString());
+
+                            if (success) {
+                                JSONObject jsonObject1 = array.getJSONObject(0);
+                                String driverID = jsonObject1.getString("_id");
+                                Log.d("ddd", driverID);
+                                BottomSheetFragment sheetFragment = new BottomSheetFragment(driverID, "37.7672544", "-112.4724356");
+                                if (getFragmentManager() != null) {
+                                    sheetFragment.show(getFragmentManager(), "Tag");
+                                }
+                                socket.connect();
+                                JSONObject data = new JSONObject();
+                                try {
+
+                                    data.put("id", id);
+                                    data.put("isDriver", "false");
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                socket.emit("join", data);
+
+                            } else {
+                                Log.d("dddd", "No Driver");
+                            }
+
                         } catch (JSONException | IOException e) {
                             e.printStackTrace();
                         }
-                        BottomSheetFragment sheetFragment = new BottomSheetFragment(new Driver("Tamer", "Tamer@gmail.com"));
-                        if (getFragmentManager() != null) {
-                            sheetFragment.show(getFragmentManager(), "Tag");
-                        }
+
                     }
                 }
 
@@ -112,6 +143,12 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
         });
         supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         return view;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        socket.disconnect();
     }
 
     @Override

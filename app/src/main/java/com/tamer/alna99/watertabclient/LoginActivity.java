@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.tamer.alna99.watertabclient.model.findDriver.SharedPrefs;
 import com.tapadoo.alerter.Alerter;
 
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,12 @@ public class LoginActivity extends AppCompatActivity {
                         assert response.body() != null;
                         JsonObject root = new JsonParser().parse(response.body().string()).getAsJsonObject();
                         boolean success = root.get("loginSuccess").getAsBoolean();
+
                         if (success) {
+                            Log.d("ddd", root.toString());
+                            JsonObject user = root.getAsJsonObject("user");
+                            String id = user.get("_id").getAsString();
+                            SharedPrefs.setUserInfo(getApplicationContext(), id);
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         } else {
