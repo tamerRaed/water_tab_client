@@ -62,6 +62,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         try {
+                            Log.d("dddd", "onResponse");
                             Log.d("dddd", response.body().string());
                         } catch (IOException e) {
                             e.printStackTrace();

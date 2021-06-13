@@ -5,13 +5,14 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.tamer.alna99.watertabclient.model.findDriver.SharedPrefs;
 import com.tapadoo.alerter.Alerter;
 
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText et_email, et_password;
     private String email, password;
     private NetworkUtils networkUtils;
+    private Button btn_login;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +42,8 @@ public class LoginActivity extends AppCompatActivity {
     private void initViews() {
         et_email = findViewById(R.id.et_email);
         et_password = findViewById(R.id.et_password);
+        btn_login = findViewById(R.id.btn_login);
+        progressBar = findViewById(R.id.login_progressBar);
     }
 
     private boolean checkFields() {
@@ -58,6 +63,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void login(View view) {
+        btn_login.setVisibility(View.INVISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
+
         if (checkFields()) {
             Call<ResponseBody> responseBodyCall = networkUtils.getApiInterface().login(email, password);
             responseBodyCall.enqueue(new Callback<ResponseBody>() {
@@ -70,14 +78,15 @@ public class LoginActivity extends AppCompatActivity {
 
                         if (success) {
                             Log.d("ddd", root.toString());
-                            JsonObject user = root.getAsJsonObject("user");
-                            String id = user.get("_id").getAsString();
-                            SharedPrefs.setUserInfo(getApplicationContext(), id);
+                            btn_login.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.GONE);
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         } else {
                             String message = root.get("message").getAsString();
                             showAlerter(message);
+                            btn_login.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.GONE);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -86,7 +95,9 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-                    Log.d("ddddd", "onFailure");
+                    btn_login.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.GONE);
+                    showAlerter(getString(R.string.error));
                 }
             });
         }
