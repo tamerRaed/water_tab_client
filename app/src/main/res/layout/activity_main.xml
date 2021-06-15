@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -43,6 +42,7 @@
         android:layout_gravity="start"
         app:itemIconTint="@color/gray"
         app:itemTextColor="@color/gray"
+        app:headerLayout="@layout/header"
         app:menu="@menu/main_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

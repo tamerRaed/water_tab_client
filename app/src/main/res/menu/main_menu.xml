@@ -14,10 +14,6 @@
             android:icon="@drawable/ic_clock"
             android:title="@string/old_orders" />
 
-        <item
-            android:id="@+id/notification"
-            android:icon="@drawable/ic_notifications"
-            android:title="@string/notification" />
     </group>
 
     <group

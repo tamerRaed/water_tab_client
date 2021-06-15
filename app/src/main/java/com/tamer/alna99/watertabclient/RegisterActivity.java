@@ -3,7 +3,6 @@ package com.tamer.alna99.watertabclient;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -31,7 +30,6 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private String email, username, phone, password;
     private NetworkUtils networkUtils;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,17 +84,14 @@ public class RegisterActivity extends AppCompatActivity {
             responseBodyCall.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
-                    Log.d("dddd", "onResponse");
                     try {
                         if (response.body() != null) {
                             JsonObject root = new JsonParser().parse(response.body().string()).getAsJsonObject();
                             boolean success = root.get("success").getAsBoolean();
                             if (success) {
                                 JsonObject user = root.getAsJsonObject("user");
-                                Log.d("ddd", user.toString());
-
                                 String id = user.get("_id").getAsString();
-                                SharedPrefs.setUserInfo(getApplicationContext(), id, username, email, phone, password);
+                                SharedPrefs.setUserInfo(getApplicationContext(), id, username, email, phone);
                                 startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                                 finish();
                             } else {
@@ -104,7 +99,7 @@ public class RegisterActivity extends AppCompatActivity {
                                 showAlerter(message);
                             }
                         } else {
-                            showAlerter(getString(R.string.email_is_used));
+                            showAlerter(getString(R.string.error));
                         }
                         btn_register.setVisibility(View.VISIBLE);
                         progressBar.setVisibility(View.GONE);

@@ -1,4 +1,4 @@
-package com.tamer.alna99.watertabclient.model.findDriver;
+package com.tamer.alna99.watertabclient.model;
 
 import com.tamer.alna99.watertabclient.NetworkUtils;
 

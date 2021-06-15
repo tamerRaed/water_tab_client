@@ -42,11 +42,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
 import com.tamer.alna99.watertabclient.NetworkUtils;
 import com.tamer.alna99.watertabclient.R;
+import com.tamer.alna99.watertabclient.model.MySocket;
 import com.tamer.alna99.watertabclient.model.SharedPrefs;
-import com.tamer.alna99.watertabclient.model.findDriver.MySocket;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -60,12 +59,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class HomepageFragment extends Fragment implements OnMapReadyCallback {
-    private final Emitter.Listener driverDecisionListener = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            String data = (String) args[0];
-            Log.d("ddd", data);
-        }
+    private final Emitter.Listener driverDecisionListener = args -> {
+        boolean data = (boolean) args[0];
+        Log.d("ddd", String.valueOf(data));
     };
     GoogleMap mMap;
     private final int REQUEST_LOCATION_PERMISSION = 100;
@@ -76,19 +72,18 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
     private LocationCallback locationCallback;
     private Location location;
     private SupportMapFragment supportMapFragment;
-    String id;
     private Socket socket;
-    LatLng origin;
-    LatLng destination;
+    private LatLng destination;
     private Group group;
     private ProgressBar progressBar;
+    private double lon;
+    private double lat;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         networkUtils = NetworkUtils.getInstance();
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getContext());
-        id = SharedPrefs.getUserId(getContext());
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext());
         checkSettingsAndRequestLocationUpdates();
         createLocationRequest();
         createLocationCallback();
@@ -99,6 +94,8 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
         Button findDriver = view.findViewById(R.id.findDriverBtn);
         group = view.findViewById(R.id.group);
         progressBar = view.findViewById(R.id.map_progressBar);
+        supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+
         findDriver.setOnClickListener(view1 -> {
             ProgressDialog dialog = ProgressDialog.show(getContext(), "",
                     getString(R.string.search_driver), true);
@@ -109,49 +106,42 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                 @Override
                 public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
                     dialog.dismiss();
-                    Log.d("ddd", "onResponse");
                     if (response.body() != null) {
                         try {
                             String result = response.body().string();
                             JSONObject jsonObject = new JSONObject(result);
                             Log.d("dddd", result);
                             boolean success = jsonObject.getBoolean("success");
-                            JSONArray array = jsonObject.getJSONArray("driver");
-                            Log.d("dddd", array.toString());
 
                             if (success) {
-                                JSONObject driver = array.getJSONObject(0);
-                                String driverID = driver.getString("_id");
-                                JSONObject locationJSON = driver.getJSONObject("location");
-                                JSONArray coordinates = locationJSON.getJSONArray("coordinates");
+                                JSONObject driver = jsonObject.getJSONObject("driver");
+                                String id = driver.getString("id");
                                 String name = driver.getString("name");
                                 String email = driver.getString("email");
+                                //String phone = driver.getString("phone");
+                                double driverLat = driver.getDouble("lat");
+                                double driverLon = driver.getDouble("lon");
+                                double rate = driver.getDouble("rate");
+                                destination = new LatLng(driverLat, driverLon);
 
-                                Log.d("ddd", driverID);
-                                Log.d("ddd", name);
-                                Log.d("ddd", email);
-                                Log.d("ddd", String.valueOf(coordinates.getDouble(0)));
-                                Log.d("ddd", String.valueOf(coordinates.getDouble(1)));
-                                destination = new LatLng(coordinates.getDouble(1), coordinates.getDouble(0));
-
-                                Log.d("dddd", String.valueOf(destination.latitude));
-                                BottomSheetFragment sheetFragment = new BottomSheetFragment(driverID, String.valueOf(coordinates.getDouble(0)), String.valueOf(coordinates.getDouble(1)));
+                                BottomSheetFragment sheetFragment = new
+                                        BottomSheetFragment(name, email, "phone", rate, () -> orderDriver(id, lat, lon));
                                 sheetFragment.show(getChildFragmentManager(), "Tag");
-
 
                                 drawRouting();
 
-
                                 socket.connect();
-//                                JSONObject data = new JSONObject();
-//                                try {
-//
-//                                    data.put("id", id);
-//                                    data.put("isDriver", "false");
-//                                } catch (JSONException e) {
-//                                    e.printStackTrace();
-//                                }
-//                                socket.emit("join", data);
+
+                                JSONObject data = new JSONObject();
+                                try {
+                                    String clintId = SharedPrefs.getUserId(requireContext());
+                                    Log.d("dddd", clintId);
+                                    data.put("id", clintId);
+                                    data.put("isDriver", "false");
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                socket.emit("join", data);
 
                                 socket.on("driverDecision", driverDecisionListener);
 
@@ -168,13 +158,39 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
 
                 @Override
                 public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-                    Log.d("dddd", t.getMessage() + "-----" + t.getLocalizedMessage());
                     dialog.dismiss();
                 }
             });
         });
-        supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         return view;
+    }
+
+    private void orderDriver(String driverID, double lat, double lon) {
+        String clintId = SharedPrefs.getUserId(requireContext());
+        String name = SharedPrefs.getUserName(requireContext());
+        Call<ResponseBody> orderDriverResponse = networkUtils.getApiInterface().orderDriver(
+                clintId,
+                driverID,
+                name,
+                lat,
+                lon);
+        orderDriverResponse.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
+                try {
+                    Log.d("dddd", "onResponse");
+                    assert response.body() != null;
+                    Log.d("dddd", response.body().string());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
+
+            }
+        });
     }
 
     @Override
@@ -186,7 +202,7 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(@NotNull GoogleMap googleMap) {
         mMap = googleMap;
-        origin = new LatLng(location.getLatitude(), location.getLongitude());
+        LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
 
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(origin);
@@ -227,13 +243,13 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
 
     private void checkSettingsAndRequestLocationUpdates() {
         // Check permission
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
         } else {
             // Create location settings request
             LocationSettingsRequest locationSettingsRequest = new LocationSettingsRequest.Builder()
                     .addLocationRequest(locationRequest).build();
-            SettingsClient settingsClient = LocationServices.getSettingsClient(getContext());
+            SettingsClient settingsClient = LocationServices.getSettingsClient(requireContext());
             Task<LocationSettingsResponse> task = settingsClient.checkLocationSettings(locationSettingsRequest);
 
             // Success
@@ -248,7 +264,7 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                     // if resolvable, ask the user  to enable location settings
                     ResolvableApiException resolvableApiException = (ResolvableApiException) e;
                     try {
-                        resolvableApiException.startResolutionForResult(getActivity(), REQUEST_LOCATION_SETTINGS);
+                        resolvableApiException.startResolutionForResult(requireActivity(), REQUEST_LOCATION_SETTINGS);
                     } catch (IntentSender.SendIntentException sendIntentException) {
                         sendIntentException.printStackTrace();
                         // Location is not available in this device
@@ -264,7 +280,7 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
 
     private void requestLocationUpdates() {
 
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
         } else {
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
@@ -285,8 +301,8 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 location = locationResult.getLastLocation();
-                Log.d("dddd", String.valueOf(location.getLongitude()));
-                Log.d("dddd", String.valueOf(location.getLatitude()));
+                lat = location.getLatitude();
+                lon = location.getLongitude();
                 removeLocationUpdates();
                 supportMapFragment.getMapAsync(HomepageFragment.this);
                 progressBar.setVisibility(View.GONE);
@@ -301,30 +317,5 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void drawRouting() {
-//        MarkerOptions markerOptions2 = new MarkerOptions()
-//                .position(destination);
-//        mMap.addMarker(markerOptions2);
-//        mMap.addPolyline(new PolylineOptions()
-//                .add(origin, destination)
-//                .width(5)
-//                .color(Color.RED)
-//                .geodesic(true));
-
-//        DrawRouteMaps.getInstance(getContext())
-//                .draw(origin, destination, mMap);
-//        DrawMarker.getInstance(getContext()).draw(mMap, origin, R.drawable.ic_location, "Origin Location");
-//        DrawMarker.getInstance(getContext()).draw(mMap, destination, R.drawable.ic_location, "Destination Location");
-//
-//        LatLngBounds bounds = new LatLngBounds.Builder()
-//                .include(origin)
-//                .include(destination).build();
-//
-//        Point displaySize = new Point();
-//        getActivity().getWindowManager().getDefaultDisplay().getSize(displaySize);
-//        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, displaySize.x, 250, 30));
-//        supportMapFragment.getMapAsync(HomepageFragment.this);
-
     }
-
-
 }

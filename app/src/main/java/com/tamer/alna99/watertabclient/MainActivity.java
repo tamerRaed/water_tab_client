@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -17,8 +18,8 @@ import com.google.android.material.navigation.NavigationView;
 import com.tamer.alna99.watertabclient.fragments.AboutUsFragment;
 import com.tamer.alna99.watertabclient.fragments.ConcatUsFragment;
 import com.tamer.alna99.watertabclient.fragments.HomepageFragment;
-import com.tamer.alna99.watertabclient.fragments.NotificationFragment;
 import com.tamer.alna99.watertabclient.fragments.OldOrdersFragment;
+import com.tamer.alna99.watertabclient.model.SharedPrefs;
 
 import java.util.Objects;
 
@@ -60,8 +61,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toolbar = findViewById(R.id.toolbar);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.navigation_view);
-        // View header = navigationView.getHeaderView(0);
-
+        View header = navigationView.getHeaderView(0);
+        TextView tv = header.findViewById(R.id.name);
+        tv.setText(SharedPrefs.getUserName(getApplicationContext()));
     }
 
 
@@ -81,14 +83,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 OldOrdersFragment oldOrdersFragment = new OldOrdersFragment();
                 moveFragment(oldOrdersFragment);
                 toolbar.setTitle(getString(R.string.old_orders));
-                toolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                drawerLayout.closeDrawers();
-                break;
-
-            case R.id.notification:
-                NotificationFragment notificationFragment = new NotificationFragment();
-                moveFragment(notificationFragment);
-                toolbar.setTitle(getString(R.string.notification));
                 toolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 drawerLayout.closeDrawers();
                 break;

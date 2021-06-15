@@ -3,7 +3,6 @@ package com.tamer.alna99.watertabclient;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -13,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.tamer.alna99.watertabclient.model.SharedPrefs;
 import com.tapadoo.alerter.Alerter;
 
 import org.jetbrains.annotations.NotNull;
@@ -77,9 +77,17 @@ public class LoginActivity extends AppCompatActivity {
                         boolean success = root.get("loginSuccess").getAsBoolean();
 
                         if (success) {
-                            Log.d("ddd", root.toString());
                             btn_login.setVisibility(View.VISIBLE);
                             progressBar.setVisibility(View.GONE);
+                            JsonObject user = root.getAsJsonObject("user");
+
+                            String id = user.get("_id").getAsString();
+                            String username = user.get("name").getAsString();
+                            String phone = user.get("phone").getAsString();
+                            String email = user.get("email").getAsString();
+
+                            SharedPrefs.setUserInfo(getApplicationContext(), id, username, email, phone);
+
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         } else {

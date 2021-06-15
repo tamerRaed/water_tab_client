@@ -42,5 +42,6 @@
     <string name="search_driver">Searching a driver..</string>
     <string name="order_driver">Order Driver</string>
     <string name="cancel">Cancel</string>
-    <string name="error">Somthing is wrong try again later.</string>
+    <string name="error">Something is wrong try again later.</string>
+    <string name="Welcome">Welcome,</string>
 </resources>

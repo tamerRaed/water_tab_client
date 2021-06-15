@@ -1,7 +1,6 @@
 package com.tamer.alna99.watertabclient.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,26 +11,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.tamer.alna99.watertabclient.NetworkUtils;
 import com.tamer.alna99.watertabclient.R;
 
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 public class BottomSheetFragment extends BottomSheetDialogFragment {
-    private final String driverID;
-    private final String lat;
-    private final String lon;
-    private NetworkUtils networkUtils;
+    private final String name;
+    private final String email;
+    private final String phone;
+    private final double rate;
+    private final OnOrderClick orderClick;
 
-    public BottomSheetFragment(String driverID, String lat, String lon) {
-        this.driverID = driverID;
-        this.lat = lat;
-        this.lon = lon;
+    public BottomSheetFragment(String name, String email, String phone, double rate, OnOrderClick orderClick) {
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+        this.rate = rate;
+        this.orderClick = orderClick;
     }
 
     @Nullable
@@ -44,40 +38,17 @@ public class BottomSheetFragment extends BottomSheetDialogFragment {
         TextView tv_phone = view.findViewById(R.id.tv_phone);
         Button btn_order = view.findViewById(R.id.btn_order);
 
-        networkUtils = NetworkUtils.getInstance();
-//        tv_name.setText(driver.getName());
-//        tv_rate.setText("4.5");
-//        tv_email.setText(driver.getEmail());
-//        tv_phone.setText("121212");
+        tv_name.setText(name);
+        tv_rate.setText(String.valueOf(rate));
+        tv_email.setText(email);
+        tv_phone.setText(phone);
 
-        btn_order.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Call<ResponseBody> orderDriverResponse = networkUtils.getApiInterface().orderDriver(
-                        "60bb2b4807608000040541c5",
-                        driverID,
-                        lat,
-                        lon);
-                orderDriverResponse.enqueue(new Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        try {
-                            Log.d("dddd", "onResponse");
-                            Log.d("dddd", response.body().string());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-
-                    }
-                });
-            }
-        });
+        btn_order.setOnClickListener(view1 -> orderClick.onClick());
 
         return view;
     }
 
+    public interface OnOrderClick {
+        void onClick();
+    }
 }

@@ -9,13 +9,12 @@ public class SharedPrefs {
 
     private final static String MY_PREFS_NAME = "USER_INFO";
 
-    public static void setUserInfo(Context context, String id, String name, String email, String phone, String password) {
+    public static void setUserInfo(Context context, String id, String name, String email, String phone) {
         SharedPreferences.Editor editor = context.getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
         editor.putString("id", id);
         editor.putString("name", name);
         editor.putString("email", email);
         editor.putString("phone", phone);
-        editor.putString("password", password);
         editor.apply();
     }
 

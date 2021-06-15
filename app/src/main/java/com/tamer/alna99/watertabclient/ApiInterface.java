@@ -18,8 +18,9 @@ public interface ApiInterface {
     String PARAM_PHONE = "phone";
     String PARAM_LAT = "lat";
     String PARAM_LONG = "long";
-    String PARAM_CLINT_ID = "clintID";
+    String PARAM_CLINT_ID = "clientID";
     String PARAM_DRIVER_ID = "driverID";
+    String PARAM_CLIENT_NAME = "clientName";
 
     @FormUrlEncoded
     @POST(LOGIN_PATH)
@@ -41,7 +42,8 @@ public interface ApiInterface {
     @POST(ORDER_DRIVER_PATH)
     Call<ResponseBody> orderDriver(@Field(PARAM_CLINT_ID) String clintID,
                                    @Field(PARAM_DRIVER_ID) String driverID,
-                                   @Field(PARAM_LAT) String lat,
-                                   @Field(PARAM_LONG) String lon);
+                                   @Field(PARAM_CLIENT_NAME) String clientName,
+                                   @Field(PARAM_LAT) double lat,
+                                   @Field(PARAM_LONG) double lon);
 
 }
