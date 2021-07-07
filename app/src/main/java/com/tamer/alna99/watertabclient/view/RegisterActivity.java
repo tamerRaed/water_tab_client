@@ -1,4 +1,4 @@
-package com.tamer.alna99.watertabclient;
+package com.tamer.alna99.watertabclient.view;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,31 +12,25 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.tamer.alna99.watertabclient.R;
+import com.tamer.alna99.watertabclient.model.Result;
 import com.tamer.alna99.watertabclient.model.SharedPrefs;
+import com.tamer.alna99.watertabclient.viewmodel.RegisterViewModel;
 import com.tapadoo.alerter.Alerter;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
     private TextInputEditText et_email, et_username, et_phone, et_password;
     private Button btn_register;
     private ProgressBar progressBar;
     private String email, username, phone, password;
-    private NetworkUtils networkUtils;
+    private RegisterViewModel registerViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
         initViews();
-        networkUtils = NetworkUtils.getInstance();
+        registerViewModel = new RegisterViewModel();
     }
 
     private void initViews() {
@@ -80,41 +74,34 @@ public class RegisterActivity extends AppCompatActivity {
         btn_register.setVisibility(View.INVISIBLE);
         progressBar.setVisibility(View.VISIBLE);
         if (checkFields()) {
-            Call<ResponseBody> responseBodyCall = networkUtils.getApiInterface().register(username, email, password, phone);
-            responseBodyCall.enqueue(new Callback<ResponseBody>() {
-                @Override
-                public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
-                    try {
-                        if (response.body() != null) {
-                            JsonObject root = new JsonParser().parse(response.body().string()).getAsJsonObject();
-                            boolean success = root.get("success").getAsBoolean();
-                            if (success) {
-                                JsonObject user = root.getAsJsonObject("user");
-                                String id = user.get("_id").getAsString();
-                                SharedPrefs.setUserInfo(getApplicationContext(), id, username, email, phone);
-                                startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                                finish();
-                            } else {
-                                String message = root.get("success").getAsString();
-                                showAlerter(message);
-                            }
+            registerViewModel.registerInfo().addObserver((observable, o) -> {
+                Result result = (Result) o;
+                switch (result.status) {
+                    case SUCCESS:
+                        String data = (String) result.data;
+                        JsonObject root = new JsonParser().parse(data).getAsJsonObject();
+                        boolean success = root.get("success").getAsBoolean();
+                        if (success) {
+                            JsonObject user = root.getAsJsonObject("user");
+                            String id = user.get("_id").getAsString();
+                            SharedPrefs.setUserInfo(getApplicationContext(), id, username, email, phone);
+                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                            finish();
                         } else {
-                            showAlerter(getString(R.string.error));
+                            String message = root.get("success").getAsString();
+                            showAlerter(message);
                         }
                         btn_register.setVisibility(View.VISIBLE);
                         progressBar.setVisibility(View.GONE);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-                    btn_register.setVisibility(View.VISIBLE);
-                    progressBar.setVisibility(View.GONE);
-                    showAlerter(getString(R.string.error));
+                        break;
+                    case ERROR:
+                        btn_register.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.GONE);
+                        showAlerter(getString(R.string.error));
+                        break;
                 }
             });
+            registerViewModel.requestRegister(username, email, password, phone);
         }
     }
 

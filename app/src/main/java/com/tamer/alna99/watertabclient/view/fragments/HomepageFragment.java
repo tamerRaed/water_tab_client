@@ -1,4 +1,4 @@
-package com.tamer.alna99.watertabclient.fragments;
+package com.tamer.alna99.watertabclient.view.fragments;
 
 import android.Manifest;
 import android.app.Activity;
@@ -40,33 +40,24 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
-import com.tamer.alna99.watertabclient.NetworkUtils;
 import com.tamer.alna99.watertabclient.R;
 import com.tamer.alna99.watertabclient.model.MySocket;
+import com.tamer.alna99.watertabclient.model.Result;
 import com.tamer.alna99.watertabclient.model.SharedPrefs;
+import com.tamer.alna99.watertabclient.viewmodel.HomepageViewModel;
+import com.tapadoo.alerter.Alerter;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class HomepageFragment extends Fragment implements OnMapReadyCallback {
-    private final Emitter.Listener driverDecisionListener = args -> {
-        boolean data = (boolean) args[0];
-        Log.d("ddd", String.valueOf(data));
-    };
-    GoogleMap mMap;
+
     private final int REQUEST_LOCATION_PERMISSION = 100;
     private final int REQUEST_LOCATION_SETTINGS = 10;
-    private NetworkUtils networkUtils;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
@@ -78,11 +69,32 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
     private ProgressBar progressBar;
     private double lon;
     private double lat;
+    JSONObject data2;
+    boolean answer;
+    String driverId;
+    private HomepageViewModel viewModel;
+    private Button findDriverBtn;
+    private Button rateBtn;
+    private final Emitter.Listener driverDecisionListener = args -> {
+        answer = (boolean) args[0];
+        Log.d("dddd", "Answer Listener: " + answer);
+        Alerter.hide();
+        if (answer) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    findDriverBtn.setVisibility(View.GONE);
+                    rateBtn.setVisibility(View.VISIBLE);
+                }
+            });
+
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        networkUtils = NetworkUtils.getInstance();
+        viewModel = new HomepageViewModel();
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext());
         checkSettingsAndRequestLocationUpdates();
         createLocationRequest();
@@ -91,106 +103,133 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
 
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_homepage, container, false);
-        Button findDriver = view.findViewById(R.id.findDriverBtn);
+        findDriverBtn = view.findViewById(R.id.findDriverBtn);
         group = view.findViewById(R.id.group);
+        rateBtn = view.findViewById(R.id.rateBtn);
         progressBar = view.findViewById(R.id.map_progressBar);
         supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
 
-        findDriver.setOnClickListener(view1 -> {
+        socket.connect();
+
+        data2 = new JSONObject();
+        try {
+            String clintId = SharedPrefs.getUserId(requireContext());
+            data2.put("id", clintId);
+            data2.put("isDriver", "false");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        socket.emit("join", data2);
+
+        rateBtn.setOnClickListener(view12 -> {
+            BottomSheetRating rating = new BottomSheetRating(new BottomSheetRating.OnRateAnswerClick() {
+                @Override
+                public void onRateClick(double rate) {
+                    Log.d("dddd", "Rate : " + rate);
+                    rateBtn.setVisibility(View.GONE);
+                    findDriverBtn.setVisibility(View.VISIBLE);
+                    viewModel.getInfo().addObserver((observable, o) -> {
+                        Result result = (Result) o;
+                        switch (result.status) {
+                            case SUCCESS:
+                                String data = (String) result.data;
+                                Log.d("dddd", data);
+                                break;
+                            case ERROR:
+                                Toast.makeText(getContext(), R.string.error, Toast.LENGTH_SHORT).show();
+                                break;
+                        }
+                    });
+                    viewModel.requestRateDriver(driverId, (int) rate);
+                }
+
+                @Override
+                public void onLaterClick() {
+                    rateBtn.setVisibility(View.GONE);
+                    findDriverBtn.setVisibility(View.VISIBLE);
+                }
+            });
+            rating.show(getChildFragmentManager(), "Tag2");
+        });
+
+        findDriverBtn.setOnClickListener(view1 -> {
             ProgressDialog dialog = ProgressDialog.show(getContext(), "",
                     getString(R.string.search_driver), true);
 
-            Call<ResponseBody> responseBodyCall = networkUtils.getApiInterface().findDriver(String.valueOf(location.getLongitude()), String.valueOf(location.getLatitude()));
-
-            responseBodyCall.enqueue(new Callback<ResponseBody>() {
-                @Override
-                public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
-                    dialog.dismiss();
-                    if (response.body() != null) {
+            viewModel.getInfo().addObserver((observable, o) -> {
+                Result<String> result = (Result) o;
+                switch (result.status) {
+                    case SUCCESS:
+                        dialog.dismiss();
+                        String data = (String) result.data;
                         try {
-                            String result = response.body().string();
-                            JSONObject jsonObject = new JSONObject(result);
-                            Log.d("dddd", result);
+                            JSONObject jsonObject = new JSONObject(data);
                             boolean success = jsonObject.getBoolean("success");
 
                             if (success) {
                                 JSONObject driver = jsonObject.getJSONObject("driver");
-                                String id = driver.getString("id");
+                                driverId = driver.getString("id");
                                 String name = driver.getString("name");
                                 String email = driver.getString("email");
-                                //String phone = driver.getString("phone");
+                                String phone = driver.getString("phone");
                                 double driverLat = driver.getDouble("lat");
                                 double driverLon = driver.getDouble("lon");
                                 double rate = driver.getDouble("rate");
                                 destination = new LatLng(driverLat, driverLon);
 
                                 BottomSheetFragment sheetFragment = new
-                                        BottomSheetFragment(name, email, "phone", rate, () -> orderDriver(id, lat, lon));
+                                        BottomSheetFragment(name, email, phone, rate, () -> orderDriver(driverId, lat, lon));
                                 sheetFragment.show(getChildFragmentManager(), "Tag");
-
-                                drawRouting();
-
-                                socket.connect();
-
-                                JSONObject data = new JSONObject();
-                                try {
-                                    String clintId = SharedPrefs.getUserId(requireContext());
-                                    Log.d("dddd", clintId);
-                                    data.put("id", clintId);
-                                    data.put("isDriver", "false");
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                socket.emit("join", data);
-
-                                socket.on("driverDecision", driverDecisionListener);
 
                             } else {
                                 Log.d("dddd", "No Driver");
                             }
-
-                        } catch (JSONException | IOException e) {
+                        } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
-                    }
-                }
-
-                @Override
-                public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-                    dialog.dismiss();
+                        break;
+                    case ERROR:
+                        dialog.dismiss();
+                        break;
                 }
             });
+            viewModel.requestFindDriver(String.valueOf(location.getLongitude()), String.valueOf(location.getLatitude()));
         });
         return view;
     }
 
     private void orderDriver(String driverID, double lat, double lon) {
+        Toast.makeText(getContext(), R.string.order_send, Toast.LENGTH_SHORT).show();
         String clintId = SharedPrefs.getUserId(requireContext());
         String name = SharedPrefs.getUserName(requireContext());
-        Call<ResponseBody> orderDriverResponse = networkUtils.getApiInterface().orderDriver(
-                clintId,
-                driverID,
-                name,
-                lat,
-                lon);
-        orderDriverResponse.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
-                try {
-                    Log.d("dddd", "onResponse");
-                    assert response.body() != null;
-                    Log.d("dddd", response.body().string());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-
+        viewModel.getInfo().addObserver((observable, o) -> {
+            Result<String> result = (Result) o;
+            switch (result.status) {
+                case SUCCESS:
+                    if (answer) {
+                        Alerter.create(requireActivity())
+                                .setText(getString(R.string.driver_on_way))
+                                .setTitle(R.string.order_accepted)
+                                .setDuration(5000)
+                                .setBackgroundColorRes(R.color.teal_200)
+                                .show();
+                    } else {
+                        Alerter.create(requireActivity())
+                                .setText(getString(R.string.find_another_driver))
+                                .setTitle(R.string.order_rejection)
+                                .setDuration(5000)
+                                .setBackgroundColorRes(R.color.teal_200)
+                                .show();
+                    }
+                    break;
+                case ERROR:
+                    Toast.makeText(getContext(), R.string.error, Toast.LENGTH_SHORT).show();
+                    break;
             }
         });
+        viewModel.requestOrderDriver(clintId, driverID, name, lat, lon);
+        socket.on("driverDecision", driverDecisionListener);
+
     }
 
     @Override
@@ -201,19 +240,17 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(@NotNull GoogleMap googleMap) {
-        mMap = googleMap;
         LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
 
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(origin);
-        mMap.addMarker(markerOptions);
+        googleMap.addMarker(markerOptions);
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .zoom(18)
                 .bearing(30)
                 .target(origin)
                 .build();
-        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
+        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
     @Override
@@ -227,7 +264,8 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -307,15 +345,11 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                 supportMapFragment.getMapAsync(HomepageFragment.this);
                 progressBar.setVisibility(View.GONE);
                 group.setVisibility(View.VISIBLE);
-
             }
         };
     }
 
     private void removeLocationUpdates() {
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
-    }
-
-    private void drawRouting() {
     }
 }

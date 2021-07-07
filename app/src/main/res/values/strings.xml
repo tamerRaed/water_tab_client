@@ -44,4 +44,16 @@
     <string name="cancel">Cancel</string>
     <string name="error">Something is wrong try again later.</string>
     <string name="Welcome">Welcome,</string>
+    <string name="wait_driver">Wait for the driver\'s response.</string>
+    <string name="order_send">Your request has been sent.</string>
+    <string name="order_accepted">Your request has been accepted.</string>
+    <string name="driver_on_way">The driver is on the way to you.</string>
+    <string name="order_rejection">Your request has been rejected.</string>
+    <string name="find_another_driver">Find another driver.</string>
+    <string name="rate_driver">Please rate the driver.</string>
+    <string name="rate">Rate</string>
+    <string name="later">Later</string>
+    <string name="rate_the_driver">Rate Driver</string>
+    <string name="about_us_text">Water Tap was inspired by the need for an online platform to provide services in a faster and more efficient way in comparison with usual ways to provide these services.&lt;br /&gt;Water Tap platform makes it easier for water-trucks drivers and their clients to communicate using modern technologies.</string>
+    <string name="dark_mode">Dark Mode</string>
 </resources>

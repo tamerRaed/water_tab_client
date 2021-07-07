@@ -1,4 +1,4 @@
-package com.tamer.alna99.watertabclient;
+package com.tamer.alna99.watertabclient.model;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -11,7 +11,8 @@ public interface ApiInterface {
     String LOGIN_PATH = "api/users/logInUser";
     String REGISTER_PATH = "api/users/registerUser";
     String FIND_DRIVER_PATH = "api/users/findNearByDriver";
-    String ORDER_DRIVER_PATH = "/api/users/orderDriver";
+    String ORDER_DRIVER_PATH = "api/users/orderDriver";
+    String RATE_DRIVER_PATH = "api/users/rateDriver";
     String PARAM_EMAIL = "email";
     String PARAM_PASSWORD = "password";
     String PARAM_NAME = "name";
@@ -21,6 +22,7 @@ public interface ApiInterface {
     String PARAM_CLINT_ID = "clientID";
     String PARAM_DRIVER_ID = "driverID";
     String PARAM_CLIENT_NAME = "clientName";
+    String PARAM_RATE = "rate";
 
     @FormUrlEncoded
     @POST(LOGIN_PATH)
@@ -45,5 +47,9 @@ public interface ApiInterface {
                                    @Field(PARAM_CLIENT_NAME) String clientName,
                                    @Field(PARAM_LAT) double lat,
                                    @Field(PARAM_LONG) double lon);
+
+    @FormUrlEncoded
+    @POST(RATE_DRIVER_PATH)
+    Call<ResponseBody> rateDriver(@Field(PARAM_DRIVER_ID) String driverID, @Field(PARAM_RATE) int rate);
 
 }

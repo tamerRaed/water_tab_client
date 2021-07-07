@@ -1,4 +1,4 @@
-package com.tamer.alna99.watertabclient.fragments;
+package com.tamer.alna99.watertabclient.view.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -43,7 +43,10 @@ public class BottomSheetFragment extends BottomSheetDialogFragment {
         tv_email.setText(email);
         tv_phone.setText(phone);
 
-        btn_order.setOnClickListener(view1 -> orderClick.onClick());
+        btn_order.setOnClickListener(view1 -> {
+            orderClick.onClick();
+            this.dismiss();
+        });
 
         return view;
     }

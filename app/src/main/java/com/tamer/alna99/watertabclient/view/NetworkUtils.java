@@ -1,4 +1,6 @@
-package com.tamer.alna99.watertabclient;
+package com.tamer.alna99.watertabclient.view;
+
+import com.tamer.alna99.watertabclient.model.ApiInterface;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;

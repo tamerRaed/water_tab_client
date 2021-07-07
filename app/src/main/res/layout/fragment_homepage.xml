@@ -17,8 +17,22 @@
     <Button
         android:id="@+id/findDriverBtn"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="?actionBarSize"
         android:text="@string/find_driver"
+        android:layout_margin="@dimen/_8sdp"
+        android:fontFamily="@font/variable_font"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/rateBtn"
+        android:layout_width="0dp"
+        android:layout_height="?actionBarSize"
+        android:layout_margin="@dimen/_8sdp"
+        android:fontFamily="@font/variable_font"
+        android:text="@string/rate_the_driver"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

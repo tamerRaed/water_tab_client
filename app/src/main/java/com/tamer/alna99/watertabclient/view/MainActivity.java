@@ -1,4 +1,4 @@
-package com.tamer.alna99.watertabclient;
+package com.tamer.alna99.watertabclient.view;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -15,11 +15,12 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.navigation.NavigationView;
-import com.tamer.alna99.watertabclient.fragments.AboutUsFragment;
-import com.tamer.alna99.watertabclient.fragments.ConcatUsFragment;
-import com.tamer.alna99.watertabclient.fragments.HomepageFragment;
-import com.tamer.alna99.watertabclient.fragments.OldOrdersFragment;
+import com.tamer.alna99.watertabclient.R;
 import com.tamer.alna99.watertabclient.model.SharedPrefs;
+import com.tamer.alna99.watertabclient.view.fragments.AboutUsFragment;
+import com.tamer.alna99.watertabclient.view.fragments.ConcatUsFragment;
+import com.tamer.alna99.watertabclient.view.fragments.HomepageFragment;
+import com.tamer.alna99.watertabclient.view.fragments.OldOrdersFragment;
 
 import java.util.Objects;
 
@@ -66,7 +67,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tv.setText(SharedPrefs.getUserName(getApplicationContext()));
     }
 
-
     @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -87,9 +87,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 drawerLayout.closeDrawers();
                 break;
 
-            case R.id.settings:
-                // TODO: Settings activity
-                break;
             case R.id.about_us:
                 AboutUsFragment aboutUsFragment = new AboutUsFragment();
                 moveFragment(aboutUsFragment);
@@ -106,12 +103,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
 
             case R.id.logout:
+                SharedPrefs.clearData(this);
                 onBackPressed();
                 break;
         }
         return false;
     }
-
 
     public void moveFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();

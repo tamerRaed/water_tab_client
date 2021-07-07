@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="@dimen/_12sdp"
-    tools:context=".fragments.ConcatUsFragment">
+    tools:context=".view.fragments.ConcatUsFragment">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/concat_us_input_layout_email_subject"
@@ -21,6 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="top"
+            android:fontFamily="@font/variable_font"
             android:hint="@string/enter_subject" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -41,6 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="top"
+            android:fontFamily="@font/variable_font"
             android:hint="@string/enter_content" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -49,6 +51,7 @@
         android:layout_width="0dp"
         android:layout_height="?actionBarSize"
         android:text="@string/send_email"
+        android:fontFamily="@font/variable_font"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

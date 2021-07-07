@@ -1,4 +1,4 @@
-package com.tamer.alna99.watertabclient.fragments;
+package com.tamer.alna99.watertabclient.view.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;

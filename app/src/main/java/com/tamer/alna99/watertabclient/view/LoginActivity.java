@@ -1,4 +1,4 @@
-package com.tamer.alna99.watertabclient;
+package com.tamer.alna99.watertabclient.view;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,33 +10,32 @@ import android.widget.ProgressBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.tamer.alna99.watertabclient.R;
+import com.tamer.alna99.watertabclient.model.Result;
 import com.tamer.alna99.watertabclient.model.SharedPrefs;
+import com.tamer.alna99.watertabclient.viewmodel.LoginViewModel;
 import com.tapadoo.alerter.Alerter;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
     private TextInputEditText et_email, et_password;
     private String email, password;
-    private NetworkUtils networkUtils;
     private Button btn_login;
     private ProgressBar progressBar;
-
+    private LoginViewModel loginViewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        networkUtils = NetworkUtils.getInstance();
+        String shared = SharedPrefs.getUserEmail(this);
+        if (!shared.equals("-1")) {
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            finish();
+        }
         initViews();
+        loginViewModel = new LoginViewModel();
     }
 
     private void initViews() {
@@ -67,26 +66,25 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
 
         if (checkFields()) {
-            Call<ResponseBody> responseBodyCall = networkUtils.getApiInterface().login(email, password);
-            responseBodyCall.enqueue(new Callback<ResponseBody>() {
-                @Override
-                public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
-                    try {
-                        assert response.body() != null;
-                        JsonObject root = new JsonParser().parse(response.body().string()).getAsJsonObject();
+            loginViewModel.loginInfo().addObserver((observable, o) -> {
+                Result result = (Result) o;
+                switch (result.status) {
+                    case SUCCESS:
+                        String data = (String) result.data;
+                        JsonObject root = new JsonParser().parse(data).getAsJsonObject();
                         boolean success = root.get("loginSuccess").getAsBoolean();
 
                         if (success) {
                             btn_login.setVisibility(View.VISIBLE);
                             progressBar.setVisibility(View.GONE);
                             JsonObject user = root.getAsJsonObject("user");
-
                             String id = user.get("_id").getAsString();
                             String username = user.get("name").getAsString();
                             String phone = user.get("phone").getAsString();
                             String email = user.get("email").getAsString();
-
+                            JsonArray jsonArray = user.get("orders").getAsJsonArray();
                             SharedPrefs.setUserInfo(getApplicationContext(), id, username, email, phone);
+                            SharedPrefs.saveOrders(getApplicationContext(), jsonArray);
 
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
@@ -96,18 +94,15 @@ public class LoginActivity extends AppCompatActivity {
                             btn_login.setVisibility(View.VISIBLE);
                             progressBar.setVisibility(View.GONE);
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-                    btn_login.setVisibility(View.VISIBLE);
-                    progressBar.setVisibility(View.GONE);
-                    showAlerter(getString(R.string.error));
+                        break;
+                    case ERROR:
+                        btn_login.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.GONE);
+                        showAlerter(getString(R.string.error));
+                        break;
                 }
             });
+            loginViewModel.requestLogin(email, password);
         }
     }
 

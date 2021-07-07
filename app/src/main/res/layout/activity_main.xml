@@ -5,7 +5,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".view.MainActivity">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -43,6 +43,7 @@
         app:itemIconTint="@color/gray"
         app:itemTextColor="@color/gray"
         app:headerLayout="@layout/header"
+        app:itemTextAppearance="@style/menuStyle"
         app:menu="@menu/main_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

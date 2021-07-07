@@ -6,16 +6,26 @@
     android:layout_height="wrap_content"
     android:padding="@dimen/_24sdp">
 
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="@dimen/_60sdp"
+        android:layout_height="@dimen/_60sdp"
+        android:contentDescription="@string/logo"
+        android:src="@drawable/ic_delivery_truck"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/lobster_regular"
         android:text="@string/Welcome"
         android:textColor="@color/purple_500"
         android:textSize="@dimen/_16sdp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView3" />
 
     <TextView
         android:id="@+id/name"
@@ -25,6 +35,7 @@
         android:textColor="@color/purple_500"
         android:textSize="@dimen/_16sdp"
         android:textStyle="bold"
+        android:fontFamily="@font/lobster_regular"
         app:layout_constraintBottom_toBottomOf="@+id/textView8"
         app:layout_constraintStart_toEndOf="@+id/textView8"
         app:layout_constraintTop_toTopOf="@+id/textView8"

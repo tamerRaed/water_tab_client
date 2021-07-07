@@ -1,6 +1,6 @@
 package com.tamer.alna99.watertabclient.model;
 
-import com.tamer.alna99.watertabclient.NetworkUtils;
+import com.tamer.alna99.watertabclient.view.NetworkUtils;
 
 import java.net.URISyntaxException;
 
