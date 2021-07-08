@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
@@ -38,7 +39,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.Task;
 import com.tamer.alna99.watertabclient.R;
 import com.tamer.alna99.watertabclient.model.MySocket;
@@ -75,6 +79,11 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
     private HomepageViewModel viewModel;
     private Button findDriverBtn;
     private Button rateBtn;
+    private GoogleMap googleMap;
+    private LatLng origin;
+    private Marker marker;
+    private Polyline polyline;
+    private CameraPosition cameraPosition;
     private final Emitter.Listener driverDecisionListener = args -> {
         answer = (boolean) args[0];
         Log.d("dddd", "Answer Listener: " + answer);
@@ -125,6 +134,9 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
             BottomSheetRating rating = new BottomSheetRating(new BottomSheetRating.OnRateAnswerClick() {
                 @Override
                 public void onRateClick(double rate) {
+                    marker.remove();
+                    polyline.remove();
+                    googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                     Log.d("dddd", "Rate : " + rate);
                     rateBtn.setVisibility(View.GONE);
                     findDriverBtn.setVisibility(View.VISIBLE);
@@ -147,6 +159,7 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                 public void onLaterClick() {
                     rateBtn.setVisibility(View.GONE);
                     findDriverBtn.setVisibility(View.VISIBLE);
+                    marker.remove();
                 }
             });
             rating.show(getChildFragmentManager(), "Tag2");
@@ -161,7 +174,7 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                 switch (result.status) {
                     case SUCCESS:
                         dialog.dismiss();
-                        String data = (String) result.data;
+                        String data = result.data;
                         try {
                             JSONObject jsonObject = new JSONObject(data);
                             boolean success = jsonObject.getBoolean("success");
@@ -175,7 +188,8 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                                 double driverLat = driver.getDouble("lat");
                                 double driverLon = driver.getDouble("lon");
                                 double rate = driver.getDouble("rate");
-                                destination = new LatLng(driverLat, driverLon);
+
+                                destination = new LatLng(driverLon, driverLat);
 
                                 BottomSheetFragment sheetFragment = new
                                         BottomSheetFragment(name, email, phone, rate, () -> orderDriver(driverId, lat, lon));
@@ -213,6 +227,27 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                                 .setDuration(5000)
                                 .setBackgroundColorRes(R.color.teal_200)
                                 .show();
+
+                        MarkerOptions markerOptions = new MarkerOptions()
+                                .position(destination);
+                        marker = googleMap.addMarker(markerOptions);
+                        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_delivery_truck));
+//                        googleMap.addMarker(markerOptions);
+
+                        polyline = googleMap.addPolyline((new PolylineOptions()).add(destination, origin).
+                                // below line is use to specify the width of poly line.
+                                        width(5)
+                                // below line is use to add color to our poly line.
+                                .color(Color.RED)
+                                // below line is to make our poly line geodesic.
+                                .geodesic(true));
+
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .zoom(18)
+                                .bearing(30)
+                                .target(destination)
+                                .build();
+                        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                     } else {
                         Alerter.create(requireActivity())
                                 .setText(getString(R.string.find_another_driver))
@@ -229,7 +264,6 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
         });
         viewModel.requestOrderDriver(clintId, driverID, name, lat, lon);
         socket.on("driverDecision", driverDecisionListener);
-
     }
 
     @Override
@@ -240,12 +274,13 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(@NotNull GoogleMap googleMap) {
-        LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
+        this.googleMap = googleMap;
+        origin = new LatLng(location.getLatitude(), location.getLongitude());
 
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(origin);
         googleMap.addMarker(markerOptions);
-        CameraPosition cameraPosition = new CameraPosition.Builder()
+        cameraPosition = new CameraPosition.Builder()
                 .zoom(18)
                 .bearing(30)
                 .target(origin)
