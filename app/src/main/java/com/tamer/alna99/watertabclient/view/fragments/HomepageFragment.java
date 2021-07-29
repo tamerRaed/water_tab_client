@@ -86,17 +86,30 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
     private CameraPosition cameraPosition;
     private final Emitter.Listener driverDecisionListener = args -> {
         answer = (boolean) args[0];
-        Log.d("dddd", "Answer Listener: " + answer);
         Alerter.hide();
         if (answer) {
-            getActivity().runOnUiThread(new Runnable() {
+            requireActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     findDriverBtn.setVisibility(View.GONE);
-                    rateBtn.setVisibility(View.VISIBLE);
                 }
             });
 
+        }
+    };
+
+    private final Emitter.Listener finishListener = args -> {
+        boolean check = (boolean) args[0];
+        Log.d("dddd", "finish: " + check);
+        if (check) {
+            requireActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    rateBtn.setVisibility(View.VISIBLE);
+                    marker.remove();
+                    polyline.remove();
+                }
+            });
         }
     };
 
@@ -134,10 +147,7 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
             BottomSheetRating rating = new BottomSheetRating(new BottomSheetRating.OnRateAnswerClick() {
                 @Override
                 public void onRateClick(double rate) {
-                    marker.remove();
-                    polyline.remove();
                     googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                    Log.d("dddd", "Rate : " + rate);
                     rateBtn.setVisibility(View.GONE);
                     findDriverBtn.setVisibility(View.VISIBLE);
                     viewModel.getInfo().addObserver((observable, o) -> {
@@ -145,14 +155,14 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                         switch (result.status) {
                             case SUCCESS:
                                 String data = (String) result.data;
-                                Log.d("dddd", data);
                                 break;
                             case ERROR:
                                 Toast.makeText(getContext(), R.string.error, Toast.LENGTH_SHORT).show();
                                 break;
                         }
                     });
-                    viewModel.requestRateDriver(driverId, (int) rate);
+                    int finalRate = (int) rate;
+                    viewModel.requestRateDriver(driverId, finalRate);
                 }
 
                 @Override
@@ -184,19 +194,24 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                                 driverId = driver.getString("id");
                                 String name = driver.getString("name");
                                 String email = driver.getString("email");
-                                String phone = driver.getString("phone");
+//                                String phone = driver.getString("phone");
                                 double driverLat = driver.getDouble("lat");
                                 double driverLon = driver.getDouble("lon");
                                 double rate = driver.getDouble("rate");
 
-                                destination = new LatLng(driverLon, driverLat);
-
                                 BottomSheetFragment sheetFragment = new
-                                        BottomSheetFragment(name, email, phone, rate, () -> orderDriver(driverId, lat, lon));
+                                        BottomSheetFragment(name, email, "0592899024", rate, () -> orderDriver(driverId, lat, lon));
                                 sheetFragment.show(getChildFragmentManager(), "Tag");
 
+                                destination = new LatLng(driverLon, driverLat);
+
                             } else {
-                                Log.d("dddd", "No Driver");
+                                Alerter.create(requireActivity())
+                                        .setText(getString(R.string.find_another_driver))
+                                        .setTitle(R.string.no_driver)
+                                        .setDuration(5000)
+                                        .setBackgroundColorRes(R.color.teal_200)
+                                        .show();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -231,16 +246,8 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                         MarkerOptions markerOptions = new MarkerOptions()
                                 .position(destination);
                         marker = googleMap.addMarker(markerOptions);
-                        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_delivery_truck));
-//                        googleMap.addMarker(markerOptions);
 
-                        polyline = googleMap.addPolyline((new PolylineOptions()).add(destination, origin).
-                                // below line is use to specify the width of poly line.
-                                        width(5)
-                                // below line is use to add color to our poly line.
-                                .color(Color.RED)
-                                // below line is to make our poly line geodesic.
-                                .geodesic(true));
+                        polyline = googleMap.addPolyline((new PolylineOptions()).add(destination, origin).width(5).color(Color.RED).geodesic(true));
 
                         CameraPosition cameraPosition = new CameraPosition.Builder()
                                 .zoom(18)
@@ -248,6 +255,7 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                                 .target(destination)
                                 .build();
                         googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                        socket.on("tripFinished", finishListener);
                     } else {
                         Alerter.create(requireActivity())
                                 .setText(getString(R.string.find_another_driver))
@@ -376,6 +384,8 @@ public class HomepageFragment extends Fragment implements OnMapReadyCallback {
                 location = locationResult.getLastLocation();
                 lat = location.getLatitude();
                 lon = location.getLongitude();
+                Log.d("dddd", "lat: " + lat);
+                Log.d("dddd", "lon: " + lon);
                 removeLocationUpdates();
                 supportMapFragment.getMapAsync(HomepageFragment.this);
                 progressBar.setVisibility(View.GONE);

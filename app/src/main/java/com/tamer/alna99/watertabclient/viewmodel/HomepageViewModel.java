@@ -1,5 +1,7 @@
 package com.tamer.alna99.watertabclient.viewmodel;
 
+import android.util.Log;
+
 import com.tamer.alna99.watertabclient.model.DataWrapper;
 import com.tamer.alna99.watertabclient.model.Result;
 import com.tamer.alna99.watertabclient.view.NetworkUtils;
@@ -54,10 +56,12 @@ public class HomepageViewModel {
         networkUtils.getApiInterface().findDriver(lon, lat).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
+                Log.d("dddd", "onResponse");
                 if (response.isSuccessful()) {
                     try {
                         assert response.body() != null;
                         dataWrapper.setData(Result.success(response.body().string()));
+                        Log.d("dddd", response.body().string());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -68,6 +72,7 @@ public class HomepageViewModel {
 
             @Override
             public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
+                Log.d("dddd", "onFailure");
                 dataWrapper.setData(Result.error("Error"));
             }
         });

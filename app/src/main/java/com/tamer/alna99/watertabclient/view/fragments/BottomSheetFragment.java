@@ -1,6 +1,7 @@
 package com.tamer.alna99.watertabclient.view.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +38,8 @@ public class BottomSheetFragment extends BottomSheetDialogFragment {
         TextView tv_email = view.findViewById(R.id.tv_email);
         TextView tv_phone = view.findViewById(R.id.tv_phone);
         Button btn_order = view.findViewById(R.id.btn_order);
+
+        Log.d("dddd", name);
 
         tv_name.setText(name);
         tv_rate.setText(String.valueOf(rate));

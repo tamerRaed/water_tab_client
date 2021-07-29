@@ -56,4 +56,5 @@
     <string name="rate_the_driver">Rate Driver</string>
     <string name="about_us_text">Water Tap was inspired by the need for an online platform to provide services in a faster and more efficient way in comparison with usual ways to provide these services.&lt;br /&gt;Water Tap platform makes it easier for water-trucks drivers and their clients to communicate using modern technologies.</string>
     <string name="dark_mode">Dark Mode</string>
+    <string name="no_driver">No Driver!</string>
 </resources>
